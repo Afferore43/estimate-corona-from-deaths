@@ -82,7 +82,7 @@ class Graph {
         if(this.size.x / this.data.length < 10) sk = 4;
         textAlign(CENTER);
         for(let x = 0; x < this.data.length; x ++) {
-            let ll = 5;
+            let ll = 3;
             fill(0);
             noStroke();
             if(x % sk == 0) { text(this.data[x]["date"].substring(5, 20),
