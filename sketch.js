@@ -148,20 +148,20 @@ class Graph {
         noStroke();
         textAlign(LEFT);
         if(this.caseFatalityRate != undefined) 
-            text("case fatality rate (- " + ceil(this.infectionToDeath) + "): " + nfc(this.caseFatalityRate * 100, 1) + " %", 
+            text("confirmed case fatality rate (- " + ceil(this.infectionToDeath) + "): " + nfc(this.caseFatalityRate * 100, 1) + " %", 
                  this.pos.x + 10, 
                  this.pos.y + 140);
         else 
-            text("case fatalatiy rate (- " + this.infectionToDeath + ") not available", 
+            text("confirmed case fatalatiy rate (- " + this.infectionToDeath + ") not available", 
                   this.pos.x + 10, 
                   this.pos.y + 140);
         
         if(this.caseFatalityRateToday != undefined) 
-            text("case fatality rate (today) : " + nfc(this.caseFatalityRateToday * 100, 1) + " %", 
+            text("confirmed case fatality rate (today) : " + nfc(this.caseFatalityRateToday * 100, 1) + " %", 
                  this.pos.x + 10, 
                  this.pos.y + 160);
         else 
-            text("case fatalatiy rate (today) not available", 
+            text("confirmed case fatalatiy rate (today) not available", 
                  this.pos.x + 10, 
                  this.pos.y + 160);
         
