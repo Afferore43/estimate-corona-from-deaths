@@ -137,7 +137,7 @@ class Graph {
                  this.pos.y + 100);
             fill(51);
             textSize(8);
-            text("using doubling time = " + nfc(this.doublingTime,1) + " days, fatality rate = " + nfc(this.fatalatyRate, 3) + " %, time between infection and death = " + nfc(this.infectionToDeath, 0) + " days", 
+            text("using doubling time = " + nfc(this.doublingTime,1) + " days, fatality rate = " + nfc(this.fatalatyRate, 3) + " %, time between infection and death = " + nfc(this.infectionToDeath,0) + " days", 
                  this.pos.x + 10, 
                  this.pos.y + 116);
         }
@@ -148,20 +148,20 @@ class Graph {
         noStroke();
         textAlign(LEFT);
         if(this.caseFatalityRate != undefined) 
-            text("confirmed case fatality rate (- " + ceil(this.infectionToDeath) + "): " + nfc(this.caseFatalityRate * 100, 1) + " %", 
+            text("case fatality rate (- " + ceil(this.infectionToDeath) + "): " + nfc(this.caseFatalityRate * 100, 1) + " %", 
                  this.pos.x + 10, 
                  this.pos.y + 140);
         else 
-            text("confirmed case fatalatiy rate (- " + this.infectionToDeath + ") not available", 
+            text("case fatalatiy rate (- " + this.infectionToDeath + ") not available", 
                   this.pos.x + 10, 
                   this.pos.y + 140);
         
         if(this.caseFatalityRateToday != undefined) 
-            text("confirmed case fatality rate (today) : " + nfc(this.caseFatalityRateToday * 100, 1) + " %", 
+            text("case fatality rate (today) : " + nfc(this.caseFatalityRateToday * 100, 1) + " %", 
                  this.pos.x + 10, 
                  this.pos.y + 160);
         else 
-            text("confirmed case fatalatiy rate (today) not available", 
+            text("case fatalatiy rate (today) not available", 
                  this.pos.x + 10, 
                  this.pos.y + 160);
         
@@ -249,9 +249,14 @@ class Graph {
         textAlign(CENTER);
         noStroke();
         fill(0);
-        text(this.selectedCountry, 
+        if(this.selectedCountry == "World") text("covid-19 worldwide", 
              width / 2, 
              this.pos.y - 10);
+        else {
+            text("covid-19 in " + this.selectedCountry, 
+             width / 2, 
+             this.pos.y - 10);
+        }
     }
     
     showMouseOverInfo() {
@@ -318,7 +323,7 @@ function setup() {
     
     for(let country in cases) {
         let c = cases[country];
-        //if(c[c.length-1]["confirmed"] > 0) 
+        if(c[c.length-1]["confirmed"] > 0) 
             countryNames.push(country);
         for(let i = 0; i < c.length; i++) {
             if(allCountries.length <= i) {
