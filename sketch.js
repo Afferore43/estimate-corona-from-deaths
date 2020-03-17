@@ -204,6 +204,9 @@ function setup() {
                         cases["World"]);
     noLoop();   
     var gui = new dat.GUI();
+	
+    gui.add(myGraph, 'selectedCountry', countryNames)
+        .onChange(v => myGraph.changeData(cases[v]));
     gui.add(myGraph, 'doublingTime')
         .min(2)
         .max(20)
@@ -220,8 +223,6 @@ function setup() {
         .onChange(v => myGraph.update());
     gui.add(myGraph, 'showEstimated')
         .onChange(v => myGraph.update());
-    gui.add(myGraph, 'selectedCountry', countryNames)
-        .onChange(v => myGraph.changeData(cases[v]));
     
     gui.close();
     changeGuiOpacity(0.55);
