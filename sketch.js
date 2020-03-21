@@ -1,10 +1,23 @@
-let cases;
+let cases, oldCases;
 let myGraph;
 
 const CASES_CONFIRMED = "confirmed";
 const CASES_DEATH = "deaths";
 const CASES_RECOVERED = "recovered";
 const CASES_ESTIMATED = "estimated";
+
+const CASES_CONFIRMED_GROWTH = "confirmed_growth";
+const CASES_DEATH_GROWTH = "deaths_growth";
+
+const FILENAME_CONFIRMED = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv";
+const FILENAME_DEATHS = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Deaths.csv";
+const FILENAME_RECOVERED = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Recovered.csv";
+
+let csvConfirmed, csvDeaths, csvRecovered;
+
+const notDateKeys = ["Province/State", "Country/Region", "Lat", "Long"];
+const countryKey = "Country/Region";
+let dates;
 
 class Graph {
     constructor(pos, size, data) {
@@ -20,6 +33,8 @@ class Graph {
         
         this.showMouseOver = true;
         this.showEstimated = true;
+        this.showGrowth = false;
+        this.showMoreStats = false;
         
         this.colors = {[CASES_DEATH] : color("#cb4f5c"), 
                        [CASES_CONFIRMED] : color("#002b5c"), 
@@ -60,6 +75,7 @@ class Graph {
         for(let i = 0; i < today; i++) {
             let j = this.data[i][CASES_CONFIRMED];
             if(j > 0)  {
+                this.data[i + 1][CASES_CONFIRMED_GROWTH] = (this.data[i + 1][CASES_CONFIRMED] - j) / j;
                 growSum += (this.data[i + 1][CASES_CONFIRMED] - j) / j;
                 numDays += 1;
             }
@@ -72,7 +88,26 @@ class Graph {
             this.confirmedGrowRate = undefined;
             this.confirmedDoublingRate = undefined;
         }
+        growSum = 0;
+        numDays = 0;
+        for(let i = 0; i < today; i++) {
+            let j = this.data[i][CASES_DEATH];
+            if(j > 0)  {
+                this.data[i + 1][CASES_DEATH_GROWTH] = (this.data[i + 1][CASES_DEATH] - j) / j;
+                growSum += (this.data[i + 1][CASES_DEATH] - j) / j;
+                numDays += 1;
+            }
+        }
+        if(numDays > 0) {
+            this.deathGrowthRate = growSum / numDays;
+            this.deathDoublingRate = 70 / (this.deathGrowthRate * 100);
+        }
+        else {
+            this.deathGrowthRate = undefined;
+            this.deathDoublingRate = undefined;
+        }
     }
+    
     
     calculateMaxValue() {
         let maxV = 0;
@@ -92,7 +127,37 @@ class Graph {
         }
     }
     
-    showData(s, y) {
+    showGrowthStats() {
+        noFill();
+        stroke(150);
+        beginShape();
+        for(let i = 0; i < this.data.length; i++) {
+            let g = this.data[i][CASES_CONFIRMED_GROWTH];
+            if(g != undefined)
+                vertex(this.pos.x + i * (this.size.x / this.data.length), 
+                       this.pos.y + this.size.y - min(g,1) * this.size.y);
+        }
+        endShape();
+        stroke(50);
+        beginShape();
+        for(let i = 0; i < this.data.length; i++) {
+            let g = this.data[i][CASES_DEATH_GROWTH];
+            if(g != undefined)
+                vertex(this.pos.x + i * (this.size.x / this.data.length), 
+                       this.pos.y + this.size.y - min(g, 1) * this.size.y);
+        }
+        endShape();
+        textAlign(LEFT);
+        textSize(8);
+        noStroke();
+        fill(0);
+        text("25 %", this.pos.x + this.size.x + 2, this.pos.y + this.size.y * 0.75);
+        text("50 %", this.pos.x + this.size.x + 2, this.pos.y + this.size.y * 0.5);
+        text("75 %", this.pos.x + this.size.x + 2, this.pos.y + this.size.y * 0.25);
+        text("100 %", this.pos.x + this.size.x - 5, this.pos.y - 2);
+    }
+    
+    showData(s) {
         stroke(this.colors[s]);
         strokeWeight(2);
         noFill();
@@ -142,6 +207,7 @@ class Graph {
                  this.pos.y + 116);
         }
         
+        if(this.showMoreStats != true) return;
         
         textSize(10);
         fill(0);
@@ -183,6 +249,26 @@ class Graph {
              text("confirmed doubling time not available", 
                  this.pos.x + 10, 
                  this.pos.y + 200);
+        
+        
+        if(this.deathGrowthRate != undefined) 
+            text("death growth rate: " + nfc(this.deathGrowthRate * 100, 1) + " %", 
+                 this.pos.x + 10, 
+                 this.pos.y + 220);
+         else 
+             text("death growth rate not available", 
+                 this.pos.x + 10, 
+                 this.pos.y + 220);
+        
+    
+        if(this.deathDoublingRate != undefined) 
+            text("death doubling time: " + nfc(this.deathDoublingRate, 1) + " days", 
+                 this.pos.x + 10, 
+                 this.pos.y + 240);
+         else 
+             text("death doubling time not available", 
+                 this.pos.x + 10, 
+                 this.pos.y + 240);
         
         
         
@@ -237,10 +323,10 @@ class Graph {
     }
     
     showGraph() {
-        this.showData(CASES_CONFIRMED, 0);
-        this.showData(CASES_DEATH, 1);
-        this.showData(CASES_RECOVERED, 2);
-        if(this.showEstimated) this.showData(CASES_ESTIMATED, 3);
+        this.showData(CASES_CONFIRMED);
+        this.showData(CASES_DEATH);
+        this.showData(CASES_RECOVERED);
+        if(this.showEstimated) this.showData(CASES_ESTIMATED);
     }
     
     showTitle() {
@@ -299,6 +385,7 @@ class Graph {
     }
     
     show(){
+        if(this.showGrowth == true) this.showGrowthStats();
         this.showTitle();
         this.showStats();
         this.showBorder();
@@ -308,30 +395,75 @@ class Graph {
 }
 
 function preload() {
-    let url = "https://pomber.github.io/covid19/timeseries.json";
-    cases = loadJSON(url);
+    csvConfirmed = loadTable(FILENAME_CONFIRMED,'csv', 'header');
+    csvDeaths = loadTable(FILENAME_DEATHS,'csv', 'header');
+    csvRecovered = loadTable(FILENAME_RECOVERED,'csv', 'header');
 }
+
+
 function changeGuiOpacity(targetOpacity = 1.0){
 	Array.from(document.getElementsByClassName('dg')).forEach(function(element, index, array) { element.style.opacity = targetOpacity; });
 }
 
+function parseCSV(csv) {
+    let countList = {};
+    
+    csv.rows.forEach(v => { 
+        let c = v.obj[countryKey];
+        countList[c] = countList[c] || {};
+        dates.forEach(x => {
+            countList[c][x] = countList[c][x] || 0;
+            countList[c][x] += int(v.obj[x]);
+        })
+    });
+    return countList;
+}
+
+
+function parseData() {
+    dates = csvConfirmed.columns;
+    dates = dates.filter( function(el) { return !notDateKeys.includes(el); });
+    
+    let confirmed = parseCSV(csvConfirmed);
+    let deaths = parseCSV(csvDeaths);
+    let recovered = parseCSV(csvRecovered);
+    
+    let countries = Object.keys(confirmed);
+    const results = {};
+    countries.forEach(country => {
+        results[country] = dates.map(date => {
+        const [month, day] = date.split("/");
+        return {
+          date: `2020-${month}-${day}`,
+          confirmed: confirmed[country][date],
+          deaths: deaths[country][date],
+          recovered: recovered[country][date]
+        };
+      });
+    });
+    return results;
+}
+
+
 function setup() {
     createCanvas(windowWidth - 20, windowHeight - 40);
+    
+    cases = parseData();
     
     let allCountries = [];
     let countryNames = [];
     
     for(let country in cases) {
         let c = cases[country];
-        if(c[c.length-1]["confirmed"] > 0) 
+        if(c[c.length-1].confirmed > 0) 
             countryNames.push(country);
         for(let i = 0; i < c.length; i++) {
             if(allCountries.length <= i) {
                 allCountries.push(c[i]);
             } else if(allCountries.length == c.length) {
-                allCountries[i]["confirmed"] += c[i]["confirmed"];
-                allCountries[i]["deaths"] += c[i]["deaths"];
-                allCountries[i]["recovered"] += c[i]["recovered"];
+                allCountries[i].confirmed += c[i].confirmed;
+                allCountries[i].deaths += c[i].deaths;
+                allCountries[i].recovered += c[i].recovered;
             }
         }
     }
@@ -364,7 +496,13 @@ function setup() {
     gui.add(myGraph, 'showEstimated')
         .onChange(v => myGraph.update());
     
-    gui.add(myGraph, 'showMouseOver');
+    gui.add(myGraph, 'showGrowth')
+        .onChange(v => myGraph.update());
+    
+    gui.add(myGraph, 'showMouseOver')
+        .onChange(v => myGraph.update());
+    gui.add(myGraph, 'showMoreStats')
+        .onChange(v => myGraph.update());
     
     gui.close();
     changeGuiOpacity(0.55);
