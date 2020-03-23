@@ -202,7 +202,7 @@ class Graph {
                  this.pos.y + 100);
             fill(51);
             textSize(8);
-            text("using doubling time = " + nfc(this.doublingTime,1) + " days, fatality rate = " + nfc(this.fatalatyRate, 1) * 100 + " %, time between infection and death = " + nfc(this.infectionToDeath,0) + " days", 
+            text("using doubling time = " + nfc(this.doublingTime,1) + " days, fatality rate = " + nfc(this.fatalatyRate * 100, 1) + " %, time between infection and death = " + nfc(this.infectionToDeath,0) + " days", 
                  this.pos.x + 10, 
                  this.pos.y + 116);
         }
