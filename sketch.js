@@ -1,4 +1,4 @@
-let cases, oldCases;
+let cases;
 let myGraph;
 
 const CASES_CONFIRMED = "confirmed";
